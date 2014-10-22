@@ -19,7 +19,7 @@ import os.path
 class CnFile:
     def __init__(self, aFileOpened_rb):
         self.file = aFileOpened_rb
-        self.length = os.path.getsize(aFileOpened_rb.name)
+        self.length = aFileOpened_rb.z
         self.currentPos = 0
         self.endReached = False
         self.sign = None
