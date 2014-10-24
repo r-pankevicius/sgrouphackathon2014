@@ -112,7 +112,13 @@ class CnFile:
         if self.currentPos < self.length:
             self.buffer = self.file.read(1)
             self.currentPos += 1
+            if not CnFile.IsDigit(self.buffer):
+                if ord(self.buffer) in [10, 13]:
+                    self.endReached = True
+                else:
+                    self._raiseBadChar()
         else:
+            self.endReached = True
             self.buffer = None
         
         return digit
@@ -121,8 +127,8 @@ class CnFile:
         return CnFile.IsDigit(self.buffer)
     
     def scanToTheEndOfNumber(self):
-        #TODO IMPL!
-        pass
+        while not self.endReached:
+            self.nextDigit()
 
 # -----------
 def main(argv):
