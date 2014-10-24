@@ -1,8 +1,8 @@
 '''
-CADIE numbers comparer.
+CADIE numbers comparer, Melbourne 2013 version, see http://youtu.be/LOJbM0aXZp0?t=5s
 
 Usage:
-    cnEq.py file1 file2
+    cnEqSlow.py file1 file2
 
 errorlevel:
     0 : file1 = file2
@@ -14,18 +14,18 @@ errorlevel:
 import sys
 import os.path
 import numpy
+from CnEqCommon import *
 
-# -----------
-# Runtime exception with error code
-class RanAndStuckError(RuntimeError):
-    
-    def __init__(self, errorCode, message):
-        RuntimeError.__init__(self, message)
-        self.errorCode = errorCode
 
 # -----------
 # CADIE Number File
 class CnFile:
+    
+    MINUS = ord('-')
+    PLUS  = ord('+')
+    ZERO  = ord('0')
+    #ONE   = ord('1')
+    NINE  = ord('9')
     
     def __init__(self, fileName):
         self.fileName = fileName
@@ -34,7 +34,7 @@ class CnFile:
         self.currentPos = 0
         self.endReached = False
         self.sign = None # negative: -1, positive: 1
-        self.buffer = None
+        #self.buffer = None
         self.isZero = None
     
     def __enter__(self):
@@ -49,47 +49,47 @@ class CnFile:
             # HTTP 204 No Content
             raise RanAndStuckError(204, 'THROW STICK BEFORE RETRIEVING: %s' % self.fileName)
 
-        # Pray and open
-        self.file = open(self.fileName, 'rb')
+        # Pray and open as memory-mapped array
+        self.file = numpy.memmap(self.fileName, 'uint8', 'r')
+        #print('1st CHAR: %c, LAST CHAR %c' % (self.file[0], self.file[self.length - 1])) 
+        #self.file = open(self.fileName, 'rb')
         self._readTo1stSignificantDigit()
         return self
     
-    def __exit__(self, aType, value, t):
-        if self.file <> None:
-            self.file.close()
-
     @staticmethod
     def IsDigit(ch):
-        return ch >= '0' and ch <= '9'
+        return ch >= CnFile.ZERO and ch <= CnFile.NINE
     
+    def _readByte(self):
+        ch = self.file[self.currentPos]
+        self.currentPos += 1
+        return ch
+
     # Moves tape reader head to 1st digit or sets self.isZero = True
     def _readTo1stSignificantDigit(self):
         
-        is1stSignificantNum = lambda digit: digit >= '1' and digit <= '9'
+        is1stSignificantNum = lambda digit: digit > CnFile.ZERO and digit <= CnFile.NINE
         
         # 1st byte always defines sign
-        self.buffer = self.file.read(1)
-        self.currentPos += 1
-        if self.buffer == '-':
+        ch = self._readByte()
+        if ch == CnFile.MINUS:
             self.sign = -1
-        elif self.buffer == '+':
+        elif ch == CnFile.PLUS:
             self.sign = 1
-        elif CnFile.IsDigit(self.buffer):
+        elif CnFile.IsDigit(ch):
             self.sign = 1
         else:
             self._raiseBadChar()
                 
-        if (self.buffer in ['-', '+']):
-            self.buffer = self.file.read(1)
-            self.currentPos += 1
+        if (ch == CnFile.MINUS or ch == CnFile.PLUS):
+            ch = self._readByte()
                 
         # Handle '0'-s at start of file
-        while (self.buffer == '0') and (self.currentPos < self.length):
-            self.buffer = self.file.read(1)
-            self.currentPos += 1
+        while (ch == CnFile.ZERO) and (self.currentPos < self.length):
+            ch = self._readByte()
             
-        if (not is1stSignificantNum(self.buffer)):
-            if self.buffer == '0':
+        if (not is1stSignificantNum(ch)):
+            if ch == CnFile.ZERO:
                 self.isZero = True
                 self.sign = 1 # Treat zero as positive zero
             else:
@@ -100,35 +100,15 @@ class CnFile:
     def _raiseBadChar(self):
         # 406 Not Acceptable
         raise RanAndStuckError(406, 'THAT\'S TOO COMPLEX FOR ME TO GRASP: \'%c\' at pos %d in file "%s"' % \
-                                       (self.buffer, self.currentPos, self.fileName))
-        
-    def nextDigit(self):
-        digit = self.buffer
-        if digit == None:
-            # 509 Bandwidth Limit Exceeded
-            raise RanAndStuckError(509, 'I\'VE FORGOTTEN WHAT I WAS ABOUT TO SAY: at pos %d in file "%s"' % \
-                                           (self.currentPos, self.fileName))
-            
-        if self.currentPos < self.length:
-            self.buffer = self.file.read(1)
-            self.currentPos += 1
-            if not CnFile.IsDigit(self.buffer):
-                if ord(self.buffer) in [10, 13]:
-                    self.endReached = True
-                else:
-                    self._raiseBadChar()
-        else:
-            self.endReached = True
-            self.buffer = None
-        
-        return digit
-    
-    def hasMoreDigits(self):
-        return CnFile.IsDigit(self.buffer)
-    
+                                       (self.file[self.currentPos], self.currentPos, self.fileName))
+
+    def __exit__(self, aType, value, t):
+        if self.file <> None:
+            #self.file.close()
+            pass # TODO : how to close/detach memmap from file?
+
     def scanToTheEndOfNumber(self):
-        while not self.endReached:
-            self.nextDigit()
+        pass
 
 # -----------
 def main(argv):
@@ -143,13 +123,13 @@ def main(argv):
     try:
         with CnFile(fileName0) as cn0:
             with CnFile(fileName1) as cn1:
-                result = compareCadieNumbers0(cn0, cn1)
+            #    result = compareCadieNumbers0(cn0, cn1)
                 # Almost here...
                 cn0.scanToTheEndOfNumber()
                 cn1.scanToTheEndOfNumber()
                 # Print file1<file2 or so
-                print('%s %s %s' % (fileName0, toCompareSign(result), fileName1))
-                sys.exit(toExitCode(result))
+            #    print('%s %s %s' % (fileName0, toCompareSign(result), fileName1))
+            #    sys.exit(toExitCode(result))
     except RanAndStuckError as expectedError:
         print('Error %d: %s' % (expectedError.errorCode, expectedError.message))
         sys.exit(expectedError.errorCode)
@@ -158,74 +138,6 @@ def main(argv):
         print('Error 450: PROGRAM FELL OFF THE EDGE ', sys.exc_info()[0], sys.exc_info()[1])
         sys.exit(450)
 
-# -----------
-def toCompareSign(resultNumber):
-    if resultNumber == 0:
-        return '='
-    elif resultNumber > 0:
-        return '>'
-    else:
-        return '<'
-
-# -----------
-def toExitCode(resultNumber):
-    if resultNumber == 0:
-        return 0
-    elif resultNumber > 0:
-        return 1
-    else:
-        return 2
-
-# -----------
-# @returns sign (cn0 - cn1) as soon as it suspects it can guess result...
-def compareCadieNumbers0(cn0, cn1):
-    
-    if cn0.sign <> cn1.sign:
-        return cn0.sign - cn1.sign
-
-    if cn0.isZero:
-        if cn1.isZero:
-            return 0
-        else:
-            return -cn1.sign
-    elif cn1.isZero:
-        return cn0.sign
-    
-    assertEqual(cn0.sign, cn1.sign)
-    theSign = cn0.sign
-    
-    # Need to read CADIE numbers in parallel and compare digits.
-    digitsDiff = lambda (x, y) : (x - '0') - (y - '0')
-    resultOnDigitsDiff = lambda (x, y) : theSign * digitsDiff(x, y) / numpy.sign(digitsDiff(x, y)) 
-    
-    while True:
-        if cn0.hasMoreDigits():
-            if cn1.hasMoreDigits():
-                d0 = cn0.nextDigit()
-                d1 = cn1.nextDigit()
-                if d0 == d1:
-                    continue
-                else:
-                    return resultOnDigitsDiff(d0, d1)
-            else:
-                return theSign
-        else:
-            return -theSign if cn1.hasMoreDigits() else 0
-    
-    iWishIWasntHere()
-
-
-# -----------
-# Self-checks
-#
-def iWishIWasntHere():
-    # HTTP 403 Forbidden
-    raise RanAndStuckError(403, 'PROGRAM HAS GOTTEN LOST.')
-
-def assertEqual(x, y):
-    if x <> y:
-        # HTTP 412 Precondition Failed
-        raise RanAndStuckError(412, 'PROGRAM IS TOO BADLY BROKEN TO RUN.')
 
 # -----------
 def usage():
