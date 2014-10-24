@@ -13,7 +13,7 @@ errorlevel:
 
 import sys
 import os.path
-#from curses.ascii import isdigit
+import numpy
 
 # -----------
 # Runtime exception with error code
@@ -35,18 +35,19 @@ class CnFile:
         self.endReached = False
         self.sign = None # negative: -1, positive: 1
         self.buffer = None
+        self.isZero = None
     
     def __enter__(self):
         # Does the file exist?
         if not os.path.isfile(self.fileName):
             # HTTP 404 Not Found
-            raise RanAndStuckError(404, 'File "%s" doesn\'t exist.' % self.fileName)
+            raise RanAndStuckError(404, 'I HAVE NO FILE AND I MUST SCREAM: %s' % self.fileName)
     
         # Empty file is invalid too
         self.length = os.path.getsize(self.fileName)
         if self.length == 0:
             # HTTP 204 No Content
-            raise RanAndStuckError(204, 'File "%s" is empty.' % self.fileName)
+            raise RanAndStuckError(204, 'THROW STICK BEFORE RETRIEVING: %s' % self.fileName)
 
         # Pray and open
         self.file = open(self.fileName, 'rb')
@@ -56,25 +57,27 @@ class CnFile:
     def __exit__(self, aType, value, t):
         if self.file <> None:
             self.file.close()
+
+    @staticmethod
+    def IsDigit(ch):
+        return ch >= '0' and ch <= '9'
     
-    # @returns negative: -1, positive: 1
+    # Moves tape reader head to 1st digit or sets self.isZero = True
     def _readTo1stSignificantDigit(self):
         
-        isdigit = lambda digit: digit >= '0' and digit <= '9'
         is1stSignificantNum = lambda digit: digit >= '1' and digit <= '9'
         
         # 1st byte always defines sign
         self.buffer = self.file.read(1)
         self.currentPos += 1
-        if self.sign == None:
-            if self.buffer == '-':
-                self.sign = -1
-            elif self.buffer == '+':
-                self.sign = 1
-            elif isdigit(self.buffer):
-                self.sign = 1
-            else:
-                self.raiseBadChar()
+        if self.buffer == '-':
+            self.sign = -1
+        elif self.buffer == '+':
+            self.sign = 1
+        elif CnFile.IsDigit(self.buffer):
+            self.sign = 1
+        else:
+            self._raiseBadChar()
                 
         if (self.buffer in ['-', '+']):
             self.buffer = self.file.read(1)
@@ -85,21 +88,41 @@ class CnFile:
             self.buffer = self.file.read(1)
             self.currentPos += 1
             
-        if (not is1stSignificantNum(self.buffer)) and (not self._isZero()):
-            self._raiseBadChar()
-        
-        
-        #TODO: _isZero - bad method, can be CR,LF...
-        #if self.buffer in ['-', '+']:
-        #    return self.sign
+        if (not is1stSignificantNum(self.buffer)):
+            if self.buffer == '0':
+                self.isZero = True
+                self.sign = 1 # Treat zero as positive zero
+            else:
+                self._raiseBadChar()
+        else:        
+            self.isZero = False
         
     def _raiseBadChar(self):
         # 406 Not Acceptable
-        raise RanAndStuckError(406, 'Bad char \'%c\' at pos %d in file "%s"' % \
+        raise RanAndStuckError(406, 'THAT\'S TOO COMPLEX FOR ME TO GRASP: \'%c\' at pos %d in file "%s"' % \
                                        (self.buffer, self.currentPos, self.fileName))
-
-    def _isZero(self):
-        return (self.buffer == '0' and self.currentPos == self.length)
+        
+    def nextDigit(self):
+        digit = self.buffer
+        if digit == None:
+            # 509 Bandwidth Limit Exceeded
+            raise RanAndStuckError(509, 'I\'VE FORGOTTEN WHAT I WAS ABOUT TO SAY: at pos %d in file "%s"' % \
+                                           (self.currentPos, self.fileName))
+            
+        if self.currentPos < self.length:
+            self.buffer = self.file.read(1)
+            self.currentPos += 1
+        else:
+            self.buffer = None
+        
+        return digit
+    
+    def hasMoreDigits(self):
+        return CnFile.IsDigit(self.buffer)
+    
+    def scanToTheEndOfNumber(self):
+        #TODO IMPL!
+        pass
 
 # -----------
 def main(argv):
@@ -114,7 +137,10 @@ def main(argv):
     try:
         with CnFile(fileName0) as cn0:
             with CnFile(fileName1) as cn1:
-                result = compareCadieNumbers(cn0, cn1)
+                result = compareCadieNumbers0(cn0, cn1)
+                # Almost here...
+                cn0.scanToTheEndOfNumber()
+                cn1.scanToTheEndOfNumber()
                 # Print file1<file2 or so
                 print('%s %s %s' % (fileName0, toCompareSign(result), fileName1))
                 sys.exit(toExitCode(result))
@@ -123,7 +149,7 @@ def main(argv):
         sys.exit(expectedError.errorCode)
     except RuntimeError:
         # HTTP 450 Blocked by Windows Parental Controls
-        print('Error 450: OMG!!! Unexpected error ', sys.exc_info()[0], sys.exc_info()[1])
+        print('Error 450: PROGRAM FELL OFF THE EDGE ', sys.exc_info()[0], sys.exc_info()[1])
         sys.exit(450)
 
 # -----------
@@ -145,47 +171,55 @@ def toExitCode(resultNumber):
         return 2
 
 # -----------
-def compareCadieNumbers(cn0, cn1):
+# @returns sign (cn0 - cn1) as soon as it suspects it can guess result...
+def compareCadieNumbers0(cn0, cn1):
     
     if cn0.sign <> cn1.sign:
         return cn0.sign - cn1.sign
 
-    #TODO: type something more here
+    if cn0.isZero:
+        if cn1.isZero:
+            return 0
+        else:
+            return -cn1.sign
+    elif cn1.isZero:
+        return cn0.sign
     
-    return 0
+    assertEqual(cn0.sign, cn1.sign)
+    theSign = cn0.sign
+    
+    # Need to read CADIE numbers in parallel and compare digits.
+    digitsDiff = lambda (x, y) : (x - '0') - (y - '0')
+    resultOnDigitsDiff = lambda (x, y) : theSign * digitsDiff(x, y) / numpy.sign(digitsDiff(x, y)) 
+    
+    while True:
+        if cn0.hasMoreDigits():
+            if cn1.hasMoreDigits():
+                d0 = cn0.nextDigit()
+                d1 = cn1.nextDigit()
+                if d0 == d1:
+                    continue
+                else:
+                    return resultOnDigitsDiff(d0, d1)
+            else:
+                return theSign
+        else:
+            return -theSign if cn1.hasMoreDigits() else 0
+    
+    iWishIWasntHere()
 
 
 # -----------
-"""
-Reads a sign::=oneof(-1,+1) and first digit::=number[0..9] in file f.
-Returns [sign, first digit]
-"""
-def readSignAndFirstDigit(f):
-    byte = f.read(1)
-    if byte == '-':
-        return -1
-    elif byte == '+':
-        return 1
-    elif byte >= '0' and byte <= '9' :
-        return 1
-    else:
-        raise RuntimeError('BAD, BAD %s' % f.name)
-        #return [byte == '-' ? -1 : +1, None]
-    #TODO: type something more here
+# Self-checks
+#
+def iWishIWasntHere():
+    # HTTP 403 Forbidden
+    raise RanAndStuckError(403, 'PROGRAM HAS GOTTEN LOST.')
 
-# -----------
-def assureFileExistsAndNotEmpty(fileName, fileIdx):
-
-    if not os.path.isfile(fileName):
-        print('File "%s" doesn\'t exist.' % fileName)
-        sys.exit(404 + fileIdx) # HTTP 404 Not Found, 405 Method Not Allowed
-
-    # Empty file is invalid
-    fileSize = os.path.getsize(fileName)
-    if fileSize == 0:
-        print('File "%s" is empty.' % fileName)
-        sys.exit(204 + fileIdx) # HTTP 204 No Content, 205 Reset Content
-
+def assertEqual(x, y):
+    if x <> y:
+        # HTTP 412 Precondition Failed
+        raise RanAndStuckError(412, 'PROGRAM IS TOO BADLY BROKEN TO RUN.')
 
 # -----------
 def usage():
