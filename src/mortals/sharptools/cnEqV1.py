@@ -1,5 +1,5 @@
 '''
-CADIE numbers comparer, Indianapolis 1950 version, see http://youtu.be/LOJbM0aXZp0?t=5s
+CADIE numbers comparer, V1
 
 Usage:
     cnEqSlow.py file1 file2
@@ -11,7 +11,6 @@ errorlevel:
     other: total disaster, correct file(s) and resubmit the job.
 '''
 
-import sys
 import os.path
 import numpy
 from CnEqCommon import *
@@ -152,24 +151,6 @@ def main(argv):
         sys.exit(450)
 
 # -----------
-def toCompareSign(resultNumber):
-    if resultNumber == 0:
-        return '='
-    elif resultNumber > 0:
-        return '>'
-    else:
-        return '<'
-
-# -----------
-def toExitCode(resultNumber):
-    if resultNumber == 0:
-        return 0
-    elif resultNumber > 0:
-        return 1
-    else:
-        return 2
-
-# -----------
 # @returns sign (cn0 - cn1) as soon as it suspects it can guess result...
 def compareCadieNumbers0(cn0, cn1):
     
@@ -188,8 +169,8 @@ def compareCadieNumbers0(cn0, cn1):
     theSign = cn0.sign
     
     # Need to read CADIE numbers in parallel and compare digits.
-    digitsDiff = lambda (x, y) : (x - '0') - (y - '0')
-    resultOnDigitsDiff = lambda (x, y) : theSign * digitsDiff(x, y) / numpy.sign(digitsDiff(x, y)) 
+    digitsDiff = lambda x, y : (x - '0') - (y - '0')
+    resultOnDigitsDiff = lambda x, y : theSign * digitsDiff(x, y) / numpy.sign(digitsDiff(x, y)) 
     
     while True:
         if cn0.hasMoreDigits():
@@ -206,25 +187,6 @@ def compareCadieNumbers0(cn0, cn1):
             return -theSign if cn1.hasMoreDigits() else 0
     
     iWishIWasntHere()
-
-
-# -----------
-# Self-checks
-#
-def iWishIWasntHere():
-    # HTTP 403 Forbidden
-    raise RanAndStuckError(403, 'PROGRAM HAS GOTTEN LOST.')
-
-def assertEqual(x, y):
-    if x <> y:
-        # HTTP 412 Precondition Failed
-        raise RanAndStuckError(412, 'PROGRAM IS TOO BADLY BROKEN TO RUN.')
-
-# -----------
-def usage():
-    print('CADIE numbers comparer.')
-    print('Usage:')
-    print('  %s file1 file2' % sys.argv[0])
 
 # -----------
 if __name__ == '__main__':

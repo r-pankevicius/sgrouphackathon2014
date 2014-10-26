@@ -1,0 +1,8 @@
+.externalToolBuilders
+.settings
+.project
+.pydevproject
+$my-notes.txt
+bill-gates-notes.$
+*.pyc
+/4test/

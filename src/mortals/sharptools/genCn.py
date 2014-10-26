@@ -12,5 +12,8 @@ but adds some "noise" in between iterations.
 @see http://en.wikipedia.org/wiki/Champernowne_constant    
 '''
 
+#INFO : Dainius has crapped some program to generate CADIE numbers,
+# we'll use it this year.
+
 if __name__ == '__main__':
     pass
