@@ -10,7 +10,7 @@ For each verify speed suite contains:
     reference to correct result file.
 '''
 
-import sys, subprocess, datetime
+import os, shutil, sys, subprocess, datetime
 import ConfigParser
 
 class VerifySuite:
@@ -48,15 +48,72 @@ class VerifySuite:
 
     Prefix = '@#$$$$: '
 
-    def __init__(self, teamName, pathToExe, formatArgsCallback):
+    def __init__(self, testDataFolder, teamName, pathToExe, argsFormat):
         '''
         Constructor
         '''
         self.teamName = teamName
         self.pathToExe = pathToExe
-        self.formatArgsCallback = formatArgsCallback
+        self.argsFormat = argsFormat
         
+        self.testDataRootFolder = testDataFolder + '4test\\'
+        self.testDataOutputFolder = testDataFolder + 'output\\'
+        
+        # Sandbox folder for smoke tests
+        self.smokeTestDataRootFolder = '..\\..\\..\\data\sandbox\\'
+        
+        self.failuresCount = 0
+        
+    def formatArgs(self, file1, operation, file2, resultFile):
+        return self.argsFormat.format(file1, operation, file2, resultFile) 
+        
+    def smokeTestFile(self, fileName):
+        return self.smokeTestDataRootFolder + fileName  
+
+    def dataFile(self, fileName):
+        return self.testDataRootFolder + fileName  
+
+    def resultFile(self, fileName):
+        return self.testDataOutputFolder + fileName
+    
+    def cleanOutputDir(self):
+        self.info('Cleaning %s' % self.testDataOutputFolder)
+        for name in os.listdir(self.testDataOutputFolder):
+            fullpath = os.path.join(self.testDataOutputFolder, name)
+            os.remove(fullpath)
+                
+    def runSmokeTests(self):
+        self.failuresCount = 0
+        self.cleanOutputDir()
+        self.hr()
+        self.info('PLEASE NOTE: THIS IS A MOMENT OF TRUTH FOR %s' % self.teamName)
+        self.info('TEAM=%s' % self.teamName)
+        self.info('PROGRAM=%s' % self.pathToExe)
+        self.hr()
+        
+        # TEST 1: 0 + 0 = 0
+        zero = self.smokeTestFile('0.txt')
+        r1 = self.resultFile('r1.txt')
+        seemsOk = self.run(zero, '+', zero, r1)
+        if not seemsOk:
+            self.failuresCount += 1
+        else:
+            self.failuresCount += self.verifyEquals(r1, zero)
+        
+        self.hr()
+        
+    def verifyEquals(self, f1, f2):
+        self.info('ASSERT %s = %s' % (f1, f2))
+        retcode = os.system('cnEq.py %s %s' % (f1, f2))
+        if retcode == 0:
+            return 0
+        self.info('ASSERT FAILED!')
+        return 1
+
+    """ Teams are not ready for it yet...
     def runSuite(self):
+        self.failuresCount = 0
+        self.cleanOutputDir()
         self.hr()
         self.info('PLEASE NOTE: THIS IS A MOMENT OF TRUTH FOR %s' % self.teamName)
         self.info('TEAM=%s' % self.teamName)
@@ -64,26 +121,31 @@ class VerifySuite:
         self.hr()
         
         #TODO: add all tests
-        #self.run('f1', '+', 'f2', 'r')
+        self.run(self.zeroFile, '+', self.zeroFile, self.testDataOutputFolder + 'r0.txt')
         
         self.hr()
+    """
         
     def run(self, f1, op, f2, result):
-        args = self.formatArgsCallback(f1, op, f2, result)
+        args = self.formatArgs(f1, op, f2, result)
         commandLine = '%s %s' % (self.pathToExe, args)
         self.info('EXEC %s' % commandLine)
         startTime = datetime.datetime.now()
+        success = True
         try:
             retcode = subprocess.call(commandLine, shell=False)
             if retcode < 0:
                 self.info('ERROR: terminated by signal %d' % -retcode)
+                success = False
             else:
                 self.info('RETCODE %d' % -retcode)
         except OSError as e:
             self.info('ERROR: execution failed: %s' % str(e))
+            success = False
         endTime = datetime.datetime.now()
         miliseconds = (endTime - startTime).microseconds / 1000
         self.info('TOOK miliseconds: %d' % miliseconds)
+        return success
             
     def info(self, string):
         print('%s%s' % (VerifySuite.Prefix, string))
@@ -105,19 +167,20 @@ def main(argv):
     config = ConfigParser.ConfigParser()
     config.read(iniFileName)
     
+    testDataFolder = config.get('Global', 'TestDataFolder')
+    
     if not (teamSectionName in config.sections()):
         print('No section %s in %s' % (teamSectionName, iniFileName))
         return
     
     teamName = config.get(teamSectionName, 'Name')
     pathToProgram = config.get(teamSectionName, 'Program')
-    args = config.get(teamSectionName, 'Args')
-    #TODO: How to define args format?
+    argsFormat = config.get(teamSectionName, 'Args')
     
-    suite = VerifySuite(teamName, pathToProgram, \
-                        lambda f1, op, f2, result : '%s %s %s %s' % (f1, op, f2, result) \
-                        )
-    suite.runSuite()
+    suite = VerifySuite(testDataFolder, teamName, pathToProgram, argsFormat)
+    #suite.runSuite()
+    suite.runSmokeTests()
+    print('TOTAL NUMBER OF FAILURES: %d' % suite.failuresCount)
     
 # -----------
 if __name__ == '__main__':

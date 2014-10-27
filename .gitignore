@@ -4,3 +4,4 @@
 .pydevproject
 $my-notes.txt
 bill-gates-notes.$
+*.pyc
