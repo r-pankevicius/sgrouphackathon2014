@@ -2,7 +2,7 @@
 CADIE numbers comparer, V1
 
 Usage:
-    cnEqSlow.py file1 file2
+    cnEqV1.py file1 file2
 
 errorlevel:
     0 : file1 = file2
@@ -13,6 +13,7 @@ errorlevel:
 
 import os.path
 import numpy
+import sys
 from CnEqCommon import *
 
 # -----------

@@ -204,6 +204,7 @@ class VerifySuite:
         self.doSuiteOpR('r102', '+', '512m\\a', 'r103')
         # r103 == 10g\a
         self.assertSuiteResultEq('r103', '10g\\a')
+        # TODO: long, verify with fc /b in case it will be enough...
         
     def run(self, f1, op, f2, result):
         args = self.formatArgs(f1, op, f2, result)
@@ -222,8 +223,8 @@ class VerifySuite:
             self.info('ERROR: execution failed: %s' % str(e))
             success = False
         endTime = datetime.datetime.now()
-        miliseconds = (endTime - startTime).microseconds / 1000
-        self.info('TOOK miliseconds: %d' % miliseconds)
+        seconds = (endTime - startTime).total_seconds()
+        self.info('TOOK seconds: %g' % seconds)
         return success
             
     def info(self, string):

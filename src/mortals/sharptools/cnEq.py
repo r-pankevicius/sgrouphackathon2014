@@ -2,7 +2,7 @@
 CADIE numbers comparer, V2
 
 Usage:
-    cnEqSlow.py file1 file2
+    cnEq.py file1 file2
 
 errorlevel:
     0 : file1 = file2
@@ -13,6 +13,7 @@ errorlevel:
 
 import os.path
 import numpy
+import sys
 from CnEqCommon import *
 
 # -----------
@@ -22,7 +23,6 @@ class CnFile:
     MINUS = ord('-')
     PLUS  = ord('+')
     ZERO  = ord('0')
-    #ONE   = ord('1')
     NINE  = ord('9')
     
     def __init__(self, fileName):
@@ -81,7 +81,7 @@ class CnFile:
         if (ch == CnFile.MINUS or ch == CnFile.PLUS):
             if self.length == 1:
                 self._raiseBadChar()
-            ch = self.file[1] 
+            ch = self.file[1]
                 
         # Handle '0'-s at start of file
         while (ch == CnFile.ZERO) and (self.currentPos != self.endpos):
