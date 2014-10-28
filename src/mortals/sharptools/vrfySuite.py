@@ -92,17 +92,33 @@ class VerifySuite:
         self.hr()
         
         # TEST 1: 0 + 0 = 0
-        zero = self.smokeTestFile('0.txt')
-        r1 = self.resultFile('r1.txt')
-        seemsOk = self.run(zero, '+', zero, r1)
-        if not seemsOk:
-            self.failuresCount += 1
-        else:
-            self.failuresCount += self.verifyEquals(r1, zero)
+        testNo = 1
+        self.runSmokeTest(testNo, '0.txt', '+', '0.txt', '0.txt'); testNo += 1
+        # etc.
+        self.runSmokeTest(testNo, '0.txt', '-', '0.txt', '0.txt'); testNo += 1
+        self.runSmokeTest(testNo, '0.txt', '+', '1.txt', '1.txt'); testNo += 1
+        self.runSmokeTest(testNo, '0.txt', '-', '1.txt', '-1.txt'); testNo += 1
+        self.runSmokeTest(testNo, '1.txt', '+', '0.txt', '1.txt'); testNo += 1
+        self.runSmokeTest(testNo, '1.txt', '-', '0.txt', '1.txt'); testNo += 1
+        self.runSmokeTest(testNo, '0.txt', '+', '-1.txt', '-1.txt'); testNo += 1
+        self.runSmokeTest(testNo, '0.txt', '-', '-1.txt', '1.txt'); testNo += 1
+        self.runSmokeTest(testNo, '-1.txt', '+', '1.txt', '0.txt'); testNo += 1
+        self.runSmokeTest(testNo, '-1.txt', '+', '0.txt', '-1.txt'); testNo += 1
         
         self.hr()
         
-    def verifyEquals(self, f1, f2):
+    def runSmokeTest(self, testNo, f1, op, f2, expected):
+        n1 = self.smokeTestFile(f1)
+        n2 = self.smokeTestFile(f2)
+        result = self.resultFile('r%d.txt' % testNo)
+        seemsOk = self.run(n1, op, n2, result)
+        if not seemsOk:
+            self.failuresCount += 1
+        else:
+            compareTo = self.smokeTestFile(expected)
+            self.failuresCount += self.verifyEqual(result, compareTo)
+        
+    def verifyEqual(self, f1, f2):
         self.info('ASSERT %s = %s' % (f1, f2))
         retcode = os.system('cnEq.py %s %s' % (f1, f2))
         if retcode == 0:

@@ -85,7 +85,7 @@ class CnFile:
                 
         # Handle '0'-s at start of file
         while (ch == CnFile.ZERO) and (self.currentPos != self.endpos):
-            ch = self.file[self.currentPos]; self.currentPos += 1
+            self.currentPos += 1; ch = self.file[self.currentPos]
             
         if (not is1stSignificantNum(ch)):
             if ch == CnFile.ZERO:
