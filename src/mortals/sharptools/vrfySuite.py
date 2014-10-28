@@ -31,6 +31,7 @@ class VerifySuite:
         
         self.failuresCount = 0
         self.badResultCount = 0
+        self.runMonsterTests = False
         
     def formatArgs(self, file1, operation, file2, resultFile):
         return self.argsFormat.format(file1, operation, file2, resultFile) 
@@ -185,15 +186,24 @@ class VerifySuite:
         self.assertSuiteResultEq('r12', '16k\\-c')
         
         
-        # TODO: Run these bigz late night
-        #self.cleanOutputDir()
-        # 10g\a + 10g\b => r100
-        # r100 - 512m\a => r101
-        # r101 - 10g\b => r102
-        # r102 + 512m\a => r103
-        # r103 == 10g\a
+        if self.runMonsterTests:
+            self.iAmMonster()
 
         self.hr()
+        
+    def iAmMonster(self):
+        self.cleanOutputDir()
+        
+        # 10g\a + 10g\b => r100
+        self.doSuiteOp('10g\\a', '+', '10g\\b', 'r100')
+        # r100 - 512m\a => r101
+        self.doSuiteOpR('r100', '-', '512m\\a', 'r101')
+        # r101 - 10g\b => r102
+        self.doSuiteOpR('r101', '-', '10g\\b', 'r102')
+        # r102 + 512m\a => r103
+        self.doSuiteOpR('r102', '+', '512m\\a', 'r103')
+        # r103 == 10g\a
+        self.assertSuiteResultEq('r103', '10g\\a')
         
     def run(self, f1, op, f2, result):
         args = self.formatArgs(f1, op, f2, result)
@@ -228,13 +238,19 @@ def main(argv):
     iniFileName = 'vrfySuite.ini'
     
     if not len(argv) in [1, 2]:
-        print('Pass team as argument (see section in %s)' % iniFileName)
+        print('Pass team as argument (see section in %s).' % iniFileName)
+        print('Program runs smoke tests by default.')
+        print('An optional second argument is go! (run smaller performance tests) or all-in (pray before using it).')
         return
     
     runRealTests = False
+    runMonsterTests = False
     if len(argv) == 2:
         if argv[1] == 'go!':
             runRealTests = True
+        elif argv[1] == 'all-in':
+            runRealTests = True
+            runMonsterTests = True
     
     teamSectionName = argv[0]
     
@@ -256,6 +272,7 @@ def main(argv):
     if not runRealTests:
         suite.runSmokeTests()
     else:
+        suite.runMonsterTests = runMonsterTests
         suite.runSuite()
         print('TOTAL NUMBER OF WRONG RESULTS: %d' % suite.badResultCount)
         
