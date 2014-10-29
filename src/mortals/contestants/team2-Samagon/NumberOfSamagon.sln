@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samagon.BigNumber", "Samagon.BigNumber\Samagon.BigNumber.csproj", "{687308CE-3F4A-4E67-8FF3-E324B55A6FF3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samagon.BigNumber.Tests", "Samagon.BigNumber.Tests\Samagon.BigNumber.Tests.csproj", "{6FD24C51-7DEA-4028-AA25-DB3170A83540}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{8571FE8C-27A7-469D-887B-0E409F3D538A}"
+	ProjectSection(SolutionItems) = preProject
+		README.txt = README.txt
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 3
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://piwnik.visualstudio.com/defaultcollection
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = Samagon.BigNumber\\Samagon.BigNumber.csproj
+		SccProjectName1 = Samagon.BigNumber
+		SccLocalPath1 = Samagon.BigNumber
+		SccProjectUniqueName2 = Samagon.BigNumber.Tests\\Samagon.BigNumber.Tests.csproj
+		SccProjectName2 = Samagon.BigNumber.Tests
+		SccLocalPath2 = Samagon.BigNumber.Tests
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{687308CE-3F4A-4E67-8FF3-E324B55A6FF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{687308CE-3F4A-4E67-8FF3-E324B55A6FF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{687308CE-3F4A-4E67-8FF3-E324B55A6FF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{687308CE-3F4A-4E67-8FF3-E324B55A6FF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FD24C51-7DEA-4028-AA25-DB3170A83540}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FD24C51-7DEA-4028-AA25-DB3170A83540}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FD24C51-7DEA-4028-AA25-DB3170A83540}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FD24C51-7DEA-4028-AA25-DB3170A83540}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
