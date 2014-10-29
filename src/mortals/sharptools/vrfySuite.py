@@ -73,6 +73,7 @@ class VerifySuite:
         self.runSmokeTest(testNo, '0.txt', '-', '-1.txt', '1.txt'); testNo += 1
         self.runSmokeTest(testNo, '-1.txt', '+', '1.txt', '0.txt'); testNo += 1
         self.runSmokeTest(testNo, '-1.txt', '+', '0.txt', '-1.txt'); testNo += 1
+        self.runSmokeTest(testNo, '-1.txt', '+', '-1.txt', '-2.txt'); testNo += 1
         
         self.hr()
         
@@ -158,12 +159,12 @@ class VerifySuite:
         # 16k\-b2 + 16k\-a2 => r4
         self.doSuiteOp('16k\\-b2', '+', '16k\\-a2', 'r4')
         # r4 == 16k\-c
-        self.assertSuiteResultEq('r4', '16k\\-c')
+        self.assertSuiteResultEq('r4', '16k\\-c2')
         
         # 16k\-b2 - 16k\a2 => r5
         self.doSuiteOp('16k\\-b2', '-', '16k\\a2', 'r5')
         # r5 == 16k\-c
-        self.assertSuiteResultEq('r5', '16k\\-c')
+        self.assertSuiteResultEq('r5', '16k\\-c2')
         
         # 16k\a3 + 1k\a3 => r6
         self.doSuiteOp('16k\\a3', '+', '1k\\a3', 'r6')
