@@ -74,12 +74,6 @@ namespace AstroGrator
 				Environment.Exit(0);
 			}
 
-			if (fileName1 == resultFileName || fileName2 == resultFileName)
-			{
-				Console.WriteLine("File1 or File2 cannot be the same as the result file!");
-				Environment.Exit(0);
-			}
-
 			Console.WriteLine("Your CPU might melt down!");
 
 			var calculator = new Calculator(fileName1, fileName2, Convert.ToChar(operation), resultFileName);

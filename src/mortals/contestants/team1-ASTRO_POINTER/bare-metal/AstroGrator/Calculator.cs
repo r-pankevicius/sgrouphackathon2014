@@ -41,6 +41,7 @@ namespace AstroGrator
 				m_CleanSecond = true;
 			}
 
+
 			FileStream file1 = new FileStream(m_File1, FileMode.Open,
 				FileAccess.Read, FileShare.Read);
 
@@ -496,7 +497,7 @@ namespace AstroGrator
 		{
 			long i = 0;
 
-			while (i < bs && (buffer[i] >= '0' && buffer[i] <= '9'))
+			while (i < bs && (buffer[i] >= (byte)'0' && buffer[i] <= (byte)'9'))
 			{
 				i++;
 			}
@@ -585,11 +586,11 @@ namespace AstroGrator
 
 			while (i >= 0)
 			{
-				int s = (buffer1[i] /*- '0'*/) - r;
+				int s = buffer1[i] - r;
 
 				r = 0;
 
-				if (s < 0)
+				if (s < 0 + '0')
 				{
 					s += 10;
 					r = 1;
@@ -604,7 +605,7 @@ namespace AstroGrator
 					traillingZeros = 0;
 				}
 
-				buffer3[z++] = (byte)(s /*+ '0'*/);
+				buffer3[z++] = (byte)(s);
 
 				i--;
 			}
