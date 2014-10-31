@@ -4,8 +4,10 @@ Configuration: .ini file
 Usage:
 Run smoke tests for team1:
     vrfySuite.py team1
-Run real tests for team1:
+Run small  tests for team1:
     vrfySuite.py team1 go!
+Run real tests for team1 (must have 512M and 10G test files):
+    vrfySuite.py team1 all-in
 '''
 
 import os, sys, subprocess, datetime
