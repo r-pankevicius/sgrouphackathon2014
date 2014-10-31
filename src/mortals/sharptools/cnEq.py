@@ -115,7 +115,9 @@ class CnFile:
             if ch in [10, 13]:
                 self.endReached = True
             else:
+                self.currentPos -= 1
                 self._raiseBadChar()
+        
             
         return ch
     
