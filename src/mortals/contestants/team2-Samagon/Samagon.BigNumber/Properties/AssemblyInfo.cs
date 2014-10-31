@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Samagon.BigNumber")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("ESRI")]
+[assembly: AssemblyCompany("sgrouphackathon")]
 [assembly: AssemblyProduct("Samagon.BigNumber")]
-[assembly: AssemblyCopyright("Copyright © ESRI 2014")]
+[assembly: AssemblyCopyright("Copyright sgrouphackathon 2014, see LICENSE")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
